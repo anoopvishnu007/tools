@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         id="application"
+         name="sourcesearch"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run
+               class="sionea.sourcesearch.Application">
+         </run>
+      </application>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            name="SourceSearch"
+            inject="true"
+            category="org.eclipse.ui"
+            class="sionea.sourcesearch.View"
+            icon="icons/search.gif"
+            allowMultiple="false"
+            id="source-search.view">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="*">
+         <view
+               standalone="false"
+               visible="true"
+               minimized="false"
+               moveable="true"
+               relative="org.eclipse.ui.console.ConsoleView"
+               relationship="left"
+               id="sionea.sourcesearch.view">
+         </view>
+         <viewShortcut
+               id="sionea.sourcesearch.view">
+         </viewShortcut>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="Test"
+            commandId="sionea.sourcesearch.handler">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="sionea.sourcesearch.handler.OpenEditorHandler"
+            id="sionea.sourcesearch.Editor.UserCommand"
+            name="Call UserEditor">
+      </command>
+     </extension>
+     <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="sionea.sourcesearch.editor.UserEditor"
+            default="false"
+            id="sionea.sourcesearch.Editor.user"
+            name="UserEditor">
+      </editor>
+     </extension>
+
+</plugin>

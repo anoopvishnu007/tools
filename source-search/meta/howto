@@ -1,0 +1,14 @@
+
+
+To import a jar library:
+https://stackoverflow.com/questions/5744520/adding-jars-to-a-eclipse-plugin
+1) Use Import>File System to import the jar files into your plugin project, say in the /lib directory.
+2) Use "Add..." to add the jars to the classpath section of the plugin.xml>Runtime tab.
+3) Use "New..." to add "." library back (with no quotes, of course).
+4) make sure your binary build exports the new jar files on the plugin.xml>Build tab.
+5) save
+6) on the project, use context menu>PDE Tools>Update Classpath to correctly add the jars to the eclipse project classpath.
+
+To use the plug-in in existing Eclipse installation do:
+File>Export>Plugins
+paste into dropins folder
