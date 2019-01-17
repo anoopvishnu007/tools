@@ -3235,7 +3235,7 @@ public class SearchContentProviderTest extends SearchContentProvider {
 	public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
 		if (arg2 != null) {
 			// the following search strings are hard coded to return some results, use those to test!
-			switch (((String)arg2).toLowerCase()) {
+			switch (((SearchData)arg2).getSearchString().toLowerCase()) {
 			case "data  pump":
 			case "data pump":
 			case "datapump":

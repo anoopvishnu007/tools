@@ -2,6 +2,7 @@ package sionea.sourcesearch;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.util.LinkedList;
 
 import javax.inject.Inject;
 
@@ -74,8 +75,13 @@ public class View extends ViewPart {
 	private StyledText searchText;
 	private StyledText sourceNameFilter;
 	private ToolBar filterBar;
+	ToolItem filterItem;
+	ToolItem ownerDropDownItem;
 	private ToolBar toolBar;
-	
+	ToolItem leftSearchItem;
+	ToolItem rightSearchItem;
+ 	private SearchData currentSearchData;
+	private final LinkedList<SearchData> searchList =new LinkedList<SearchData>();
 
 
 	public final static int COLUMN_SOURCE_NAME = 0;
@@ -163,12 +169,17 @@ public class View extends ViewPart {
 			switch (e.detail) {
 			case SWT.TRAVERSE_RETURN:
 				if (!searchText.isDisposed()) {
-					viewer.setInput(searchText.getText());
-					// pack table to set column width
-					Table t = viewer.getTable();
-					for (int i = 0, n = t.getColumnCount(); i < n; i++) {
-						t.getColumn(i).pack();
+					SearchData data= getSearchDataFromControls();
+					if(currentSearchData != null){
+						currentSearchData.setNext(data);
+						data.setPrevious(currentSearchData);
+						
 					}
+					currentSearchData= data;
+					searchList.add(currentSearchData);
+					setSearchresults(data);
+					setBackwardButtonImage();
+					setForwardButtonImage();
 				}
 				break;
 			default:
@@ -196,7 +207,7 @@ public class View extends ViewPart {
 		 gridData = new GridData(GridData.BEGINNING, GridData.CENTER, false, false);
 		 toolBar.setLayoutData(gridData);
 
-		ToolItem filterItem = new ToolItem(toolBar, SWT.DROP_DOWN);
+		  filterItem = new ToolItem(toolBar, SWT.DROP_DOWN);
 	    DropdownSelectionListener listenerOne = new DropdownSelectionListener(filterItem);
 	    listenerOne.add(" ");
 	    listenerOne.add("package");
@@ -206,7 +217,7 @@ public class View extends ViewPart {
 		// filterItem.setImage( getPluginImage("filter") );
 		new ToolItem(toolBar, SWT.SEPARATOR);
 
-		ToolItem ownerDropDownItem = new ToolItem(toolBar, SWT.DROP_DOWN);
+		  ownerDropDownItem = new ToolItem(toolBar, SWT.DROP_DOWN);
 	    DropdownSelectionListener listenerTwo = new DropdownSelectionListener(ownerDropDownItem);
 	    listenerTwo.add(" "); 
 	    listenerTwo.add("1");
@@ -215,25 +226,40 @@ public class View extends ViewPart {
 	    ownerDropDownItem.setToolTipText("Filter Owner");
 		new ToolItem(toolBar, SWT.SEPARATOR);
 
-		ToolItem leftSearchItem = new ToolItem(toolBar, SWT.NONE);
+		leftSearchItem = new ToolItem(toolBar, SWT.NONE);
 		leftSearchItem.setImage(SourceSearchPlugin.getDefault().getImageRegistry().get("icons/backward_nav.png"));
-		leftSearchItem.setToolTipText("Clear search text");
+		leftSearchItem.setToolTipText("Run previous search");
 		leftSearchItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				searchText.setText("");
-				searchText.setFocus();
+ 					int index= searchList.indexOf(currentSearchData);
+					if(index >=0 && index<searchList.size()){
+					  currentSearchData = searchList.get(index-1);	
+					  setSearchresults(currentSearchData);
+						setBackwardButtonImage();
+						setForwardButtonImage();
+					}
+					
+				 
 			}
+
+		
 		});
 		new ToolItem(toolBar, SWT.SEPARATOR);
-		ToolItem rightSearchItem = new ToolItem(toolBar, SWT.NONE);
+		rightSearchItem = new ToolItem(toolBar, SWT.NONE);
 		rightSearchItem.setImage(SourceSearchPlugin.getDefault().getImageRegistry().get("icons/forward_nav.png"));
-		rightSearchItem.setToolTipText("Clear search text");
+		rightSearchItem.setToolTipText("Run next search");
 		rightSearchItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				searchText.setText("");
-				searchText.setFocus();
+ 					int index= searchList.indexOf(currentSearchData);
+					if(index >=0 && index<searchList.size()){
+						currentSearchData = searchList.get(index+1);	
+						setSearchresults(currentSearchData);
+						setBackwardButtonImage();
+						setForwardButtonImage();
+					}
+				 
 			}
 		});
 		filterBar.update();
@@ -365,6 +391,43 @@ public class View extends ViewPart {
 			t.getColumn(i).pack();
 		}
 
+		
+	}
+	private void setBackwardButtonImage() {
+		if(currentSearchData!= null && currentSearchData.getPrevious()!=null){
+			leftSearchItem.setEnabled(true);
+		    leftSearchItem.setImage(SourceSearchPlugin.getDefault().getImageRegistry().get("icons/backward_nav_active.png"));		 
+		}else{
+			leftSearchItem.setImage(SourceSearchPlugin.getDefault().getImageRegistry().get("icons/backward_nav.png"));
+			leftSearchItem.setDisabledImage(SourceSearchPlugin.getDefault().getImageRegistry().get("icons/backward_nav.png"));
+			leftSearchItem.setEnabled(false);
+		}
+	}
+	private void setForwardButtonImage() {
+		if(currentSearchData!= null && currentSearchData.getNext()!=null){
+			rightSearchItem.setEnabled(true);
+			rightSearchItem.setImage(SourceSearchPlugin.getDefault().getImageRegistry().get("icons/forward_nav_active.png"));
+		}else{
+			rightSearchItem.setImage(SourceSearchPlugin.getDefault().getImageRegistry().get("icons/forward_nav.png"));
+			rightSearchItem.setDisabledImage(SourceSearchPlugin.getDefault().getImageRegistry().get("icons/forward_nav.png"));
+			rightSearchItem.setEnabled(false);
+		}
+	}
+	private void setSearchresults(SearchData data) {
+		viewer.setInput(data);
+		// pack table to set column width
+		Table t = viewer.getTable();
+		for (int i = 0, n = t.getColumnCount(); i < n; i++) {
+			t.getColumn(i).pack();
+		}
+	}
+	private SearchData getSearchDataFromControls() {
+		 SearchData data= new SearchData();
+		 data.setSearchString(searchText.getText());
+		 data.setSourceNameFilter(sourceNameFilter.getText());
+		 data.setFilterPackage(filterItem.getText());
+		 data.setFilterOwner(ownerDropDownItem.getText());
+		 return data;
 		
 	}
 	/**
