@@ -16,7 +16,7 @@ class DropdownSelectionListener extends SelectionAdapter {
 
   public DropdownSelectionListener(ToolItem dropdown) {
     this.dropdown = dropdown;
-    menu = new Menu(dropdown.getParent().getShell());
+    menu = new Menu(this.dropdown.getParent().getShell());
   }
 
   public void add(String item) {
@@ -37,6 +37,7 @@ class DropdownSelectionListener extends SelectionAdapter {
       Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
       menu.setLocation(pt.x, pt.y + rect.height);
       menu.setVisible(true);
+      
     } else {
       System.out.println(dropdown.getText() + " Pressed");
     }

@@ -2,6 +2,7 @@ package sionea.sourcesearch;
 
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.swt.SWT;
 
 public class SourceSearchSorter extends ViewerComparator {
 	private static final int ASCENDING = 0;
@@ -59,5 +60,12 @@ public class SourceSearchSorter extends ViewerComparator {
 			rc = -rc;
 
 		return rc;
+	}
+	public int getDirection(){
+		if (direction == DESCENDING){
+			return SWT.DOWN;
+		}else{
+			return SWT.UP;
+		}
 	}
 }

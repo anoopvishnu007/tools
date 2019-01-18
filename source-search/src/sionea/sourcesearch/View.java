@@ -34,6 +34,7 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.FocusEvent;
@@ -48,6 +49,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorPart;
@@ -208,6 +210,7 @@ public class View extends ViewPart {
 		 toolBar.setLayoutData(gridData);
 
 		  filterItem = new ToolItem(toolBar, SWT.DROP_DOWN);
+		  filterItem.setText(" ");
 	    DropdownSelectionListener listenerOne = new DropdownSelectionListener(filterItem);
 	    listenerOne.add(" ");
 	    listenerOne.add("package");
@@ -218,6 +221,7 @@ public class View extends ViewPart {
 		new ToolItem(toolBar, SWT.SEPARATOR);
 
 		  ownerDropDownItem = new ToolItem(toolBar, SWT.DROP_DOWN);
+		  ownerDropDownItem.setText(" ");
 	    DropdownSelectionListener listenerTwo = new DropdownSelectionListener(ownerDropDownItem);
 	    listenerTwo.add(" "); 
 	    listenerTwo.add("1");
@@ -308,7 +312,7 @@ public class View extends ViewPart {
 								public void run(IProgressMonitor monitor) throws CoreException {
 									IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject("test");
 									IFile fileToOpen = project.getFile(new Path("externalfile.xml"));
-									File file=fileToOpen.getLocation().toFile();
+									File file=fileToOpen.getFullPath().toFile();
 									if (file.exists() ) {
 										ResourcesPlugin.getWorkspace().getRoot().getProject("test").refreshLocal(IResource.DEPTH_INFINITE, monitor);
 										//IFileStore fileStore = EFS.getLocalFileSystem().getStore(fileToOpen.toURI());
@@ -347,48 +351,60 @@ public class View extends ViewPart {
 				}
 			}
 		});
-		Table t = viewer.getTable();
-		t.setLinesVisible(true);
-		t.setHeaderVisible(true);
-
-		TableColumn tc = new TableColumn(t, SWT.LEFT);
-		tc.setText("Source Name");
-		tc.addSelectionListener(new SelectionAdapter() {
+		Table searchResultTable = viewer.getTable();
+		searchResultTable.setLinesVisible(true);
+		searchResultTable.setHeaderVisible(true);
+ 		 
+		SourceSearchColumnLabelProvider columnLabelProvider= new SourceSearchColumnLabelProvider(searchResultTable);
+ 		TableItem item= new TableItem(searchResultTable, SWT.NONE);
+		item.setBackground(searchResultTable.getDisplay().getSystemColor(SWT.COLOR_GRAY));
+		final TableColumn sourceNameTC = new TableColumn(searchResultTable, SWT.LEFT);
+		sourceNameTC.setText("Source Name");
+		 
+ 		sourceNameTC.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				((SourceSearchSorter) viewer.getComparator()).doSort(COLUMN_SOURCE_NAME);
-				viewer.refresh();
+				searchResultTable.setSortColumn(sourceNameTC);
+				searchResultTable.setSortDirection(((SourceSearchSorter) viewer.getComparator()).getDirection());
+ 				viewer.refresh();
 			}
 		});
-
-		tc = new TableColumn(t, SWT.LEFT);
-		tc.setText("Source Type");
-		tc.addSelectionListener(new SelectionAdapter() {
+		
+		final TableColumn sourceTypeTC = new TableColumn(searchResultTable, SWT.LEFT);
+		sourceTypeTC.setText("Source Type");
+		sourceTypeTC.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				((SourceSearchSorter) viewer.getComparator()).doSort(COLUMN_SOURCE_TYPE);
+				searchResultTable.setSortColumn(sourceTypeTC);
+				searchResultTable.setSortDirection(((SourceSearchSorter) viewer.getComparator()).getDirection());
 				viewer.refresh();
 			}
 		});
 
-		tc = new TableColumn(t, SWT.LEFT);
-		tc.setText("Owner");
-		tc.addSelectionListener(new SelectionAdapter() {
+		final TableColumn ownerTC = new TableColumn(searchResultTable, SWT.LEFT);
+		ownerTC.setText("Owner");
+		ownerTC.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				((SourceSearchSorter) viewer.getComparator()).doSort(COLUMN_SOURCE_OWNER);
+				searchResultTable.setSortColumn(ownerTC);
+				searchResultTable.setSortDirection(((SourceSearchSorter) viewer.getComparator()).getDirection());
 				viewer.refresh();
 			}
 		});
 
-		tc = new TableColumn(t, SWT.LEFT);
-		tc.setText("Count");
-		tc.addSelectionListener(new SelectionAdapter() {
+		final TableColumn countTC = new TableColumn(searchResultTable, SWT.LEFT);
+		countTC.setText("Count");
+		countTC.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				((SourceSearchSorter) viewer.getComparator()).doSort(COLUMN_SOURCE_COUNT);
+				searchResultTable.setSortColumn(countTC);
+				searchResultTable.setSortDirection(((SourceSearchSorter) viewer.getComparator()).getDirection());
 				viewer.refresh();
 			}
 		});
 		
-		for (int i = 0, n = t.getColumnCount(); i < n; i++) {
-			t.getColumn(i).pack();
+		for (int i = 0, n = searchResultTable.getColumnCount(); i < n; i++) {
+			searchResultTable.getColumn(i).pack();
 		}
 
 		
@@ -414,11 +430,14 @@ public class View extends ViewPart {
 		}
 	}
 	private void setSearchresults(SearchData data) {
-		viewer.setInput(data);
-		// pack table to set column width
-		Table t = viewer.getTable();
-		for (int i = 0, n = t.getColumnCount(); i < n; i++) {
-			t.getColumn(i).pack();
+		if(data!=null){
+			viewer.setInput(data);
+			// pack table to set column width
+			Table t = viewer.getTable();
+			for (int i = 0, n = t.getColumnCount(); i < n; i++) {
+				t.getColumn(i).pack();
+			}
+			setSearchDataInControls(data);
 		}
 	}
 	private SearchData getSearchDataFromControls() {
@@ -429,6 +448,13 @@ public class View extends ViewPart {
 		 data.setFilterOwner(ownerDropDownItem.getText());
 		 return data;
 		
+	}
+	private void setSearchDataInControls(SearchData data) {
+		searchText.setText(data.getSearchString());
+		sourceNameFilter.setText(data.getSourceNameFilter());
+		filterItem.setText(data.getFilterPackage());
+		ownerDropDownItem.setText(data.getFilterOwner());
+
 	}
 	/**
      * refresh the reqm output folder for the given project. The refresh is done in a separate thread
