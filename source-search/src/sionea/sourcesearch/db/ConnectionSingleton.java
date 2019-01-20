@@ -13,7 +13,7 @@ import java.util.Properties;
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 import oracle.jdbc.pool.OracleDataSource;
-import sionea.sourcesearch.SearchResult;
+import sionea.sourcesearch.data.SearchResult;
 
 
 public class ConnectionSingleton {

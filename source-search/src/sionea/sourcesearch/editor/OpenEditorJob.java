@@ -41,9 +41,9 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 
-import sionea.sourcesearch.SearchContentProvider;
-import sionea.sourcesearch.SearchResult;
+import sionea.sourcesearch.data.SearchResult;
 import sionea.sourcesearch.db.ConnectionSingleton;
+import sionea.sourcesearch.ui.SearchContentProvider;
 
 public class OpenEditorJob extends Job implements ISchedulingRule, IPartListener {
 

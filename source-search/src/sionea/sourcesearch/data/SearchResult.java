@@ -1,4 +1,4 @@
-package sionea.sourcesearch;
+package sionea.sourcesearch.data;
 
 public class SearchResult {
 

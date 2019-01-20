@@ -1,10 +1,11 @@
-package sionea.sourcesearch;
+package sionea.sourcesearch.ui;
 
 import java.util.ArrayList;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import sionea.sourcesearch.data.SearchResult;
 import sionea.sourcesearch.db.ConnectionSingleton;
 
 public class SearchContentProvider implements IStructuredContentProvider {

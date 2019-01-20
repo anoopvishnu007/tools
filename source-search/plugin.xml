@@ -3,50 +3,27 @@
 <plugin>
 
    <extension
-         id="application"
-         name="sourcesearch"
-         point="org.eclipse.core.runtime.applications">
-      <application>
-         <run
-               class="sionea.sourcesearch.Application">
-         </run>
-      </application>
-   </extension>
-   <extension
          point="org.eclipse.ui.views">
       <view
             name="SourceSearch"
             inject="true"
             category="org.eclipse.ui"
-            class="sionea.sourcesearch.View"
+            class="sionea.sourcesearch.ui.SourceSearchView"
             icon="icons/search.gif"
             allowMultiple="false"
             id="source-search.view">
       </view>
    </extension>
    <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="*">
-         <view
-               standalone="false"
-               visible="true"
-               minimized="false"
-               moveable="true"
-               relative="org.eclipse.ui.console.ConsoleView"
-               relationship="left"
-               id="sionea.sourcesearch.view">
-         </view>
-         <viewShortcut
-               id="sionea.sourcesearch.view">
-         </viewShortcut>
-      </perspectiveExtension>
-   </extension>
-   <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="Test"
-            commandId="sionea.sourcesearch.handler">
+            class="sionea.sourcesearch.handler.SearchResultCopyHandler"
+            commandId="org.eclipse.ui.edit.copy">
+         <activeWhen>
+      <with variable="activePartId">
+         <equals value="source-search.view"/>
+      </with>
+   </activeWhen>
       </handler>
    </extension>
    <extension
@@ -56,15 +33,7 @@
             id="sionea.sourcesearch.Editor.UserCommand"
             name="Call UserEditor">
       </command>
-     </extension>
-     <extension
-         point="org.eclipse.ui.editors">
-      <editor
-            class="sionea.sourcesearch.editor.UserEditor"
-            default="false"
-            id="sionea.sourcesearch.Editor.user"
-            name="UserEditor">
-      </editor>
+      
      </extension>
 
 </plugin>

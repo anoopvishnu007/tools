@@ -1,4 +1,4 @@
-package sionea.sourcesearch;
+package sionea.sourcesearch.ui;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.graphics.Image;
+
+import sionea.sourcesearch.data.SearchResult;
 
 public class SearchLabelProvider implements ITableLabelProvider {
 

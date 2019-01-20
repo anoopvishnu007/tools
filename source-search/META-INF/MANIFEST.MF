@@ -7,19 +7,12 @@ Bundle-Activator: sionea.sourcesearch.SourceSearchPlugin
 Bundle-Vendor: ulrich.weiss
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,
- org.eclipse.equinox.ds,
- org.eclipse.equinox.util,
- org.eclipse.equinox.event,
  org.eclipse.search,
- org.eclipse.swt,
- org.eclipse.ui.workbench,
  org.eclipse.ui.ide,
  org.eclipse.core.resources,
  org.eclipse.core.filesystem,
- org.eclipse.jface.text,
- org.eclipse.e4.ui.workbench,
- org.eclipse.core.net,
- org.eclipse.ui.ide.application
+ org.eclipse.datatools.sqltools.sqleditor;bundle-version="1.2.101",
+ org.eclipse.core.commands
 Automatic-Module-Name: source-search
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: sionea.sourcesearch;version="1.0.0";

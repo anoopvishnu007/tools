@@ -1,8 +1,10 @@
-package sionea.sourcesearch;
+package sionea.sourcesearch.ui;
 
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
+
+import sionea.sourcesearch.data.SearchResult;
 
 public class SourceSearchSorter extends ViewerComparator {
 	private static final int ASCENDING = 0;
@@ -41,16 +43,16 @@ public class SourceSearchSorter extends ViewerComparator {
 
 		// Determine which column and do the appropriate sort
 		switch (column) {
-		case View.COLUMN_SOURCE_NAME:
+		case SourceSearchView.COLUMN_SOURCE_NAME:
 			rc = p1.getSourceName().compareTo(p2.getSourceName());
 			break;
-		case View.COLUMN_SOURCE_TYPE:
+		case SourceSearchView.COLUMN_SOURCE_TYPE:
 			rc = p1.getSourceType().compareTo(p2.getSourceType());
 			break;
-		case View.COLUMN_SOURCE_OWNER:
+		case SourceSearchView.COLUMN_SOURCE_OWNER:
 			rc = p1.getOwnerId() > p2.getOwnerId() ? 1 : -1;
 			break;
-		case View.COLUMN_SOURCE_COUNT:
+		case SourceSearchView.COLUMN_SOURCE_COUNT:
 			rc = p1.getCount() > p2.getCount() ? 1 : -1;
 			break;
 		}

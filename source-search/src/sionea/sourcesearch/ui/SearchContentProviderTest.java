@@ -1,6 +1,9 @@
-package sionea.sourcesearch;
+package sionea.sourcesearch.ui;
 
 import org.eclipse.jface.viewers.Viewer;
+
+import sionea.sourcesearch.data.SearchData;
+import sionea.sourcesearch.data.SearchResult;
 
 public class SearchContentProviderTest extends SearchContentProvider {
 
