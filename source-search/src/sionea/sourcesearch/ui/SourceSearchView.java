@@ -1,9 +1,14 @@
 package sionea.sourcesearch.ui;
 
+import java.util.Collection;
 import java.util.LinkedList;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -12,22 +17,31 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 import sionea.sourcesearch.SourceSearchPlugin;
 import sionea.sourcesearch.data.SearchData;
 import sionea.sourcesearch.data.SearchResult;
+import sionea.sourcesearch.editor.EditorService;
 import sionea.sourcesearch.utils.FileSystemUtils;
 
 public class SourceSearchView extends ViewPart {
@@ -276,14 +290,70 @@ public class SourceSearchView extends ViewPart {
 			t.getColumn(i).pack();
 		}
 		getSite().setSelectionProvider(viewer);
-		/*
-		 * IHandlerService serv = (IHandlerService)
-		 * getSite().getService(IHandlerService.class); SearchResultCopyHandler cp = new
-		 * SearchResultCopyHandler();
-		 * serv.activateHandler(org.eclipse.ui.IWorkbenchCommandConstants.EDIT_COPY,
-		 * cp);
-		 */
+		 
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(getPartListner());
 
+	}
+	private IPartListener getPartListner() {
+		IPartListener partListner= new IPartListener() {
+			
+			@Override
+			public void partOpened(IWorkbenchPart part) {
+				if(part instanceof IEditorPart) {
+					ITextEditor editor= (ITextEditor)part;
+					IEditorInput input=editor.getEditorInput();
+		            IFile editorFile = (IFile) input.getAdapter(IFile.class);
+		            IProject project=ResourcesPlugin.getWorkspace().getRoot().getProject("sourcesearch");
+		            if(project.exists() && project.equals(editorFile.getProject())){		        		
+		        		ITextViewer viewer = (ITextViewer) editor.getAdapter(ITextOperationTarget.class);
+		        		if (viewer != null) {
+		        			viewer.setEditable(false);
+		        			viewer.getTextWidget().setBackground(new Color(Display.getCurrent(), 211, 211, 211));
+		        		}
+		            }
+
+				}				
+			}
+			
+			@Override
+			public void partDeactivated(IWorkbenchPart part) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void partClosed(IWorkbenchPart part) {
+				Collection<IEditorPart> parts=EditorService.getDefualt().getOpenedReadOnlyEditors("org.eclipse.datatools.sqltools.sqleditor.SQLEditor");
+				EditorService.getDefualt().closeEditors(parts);
+			}
+			
+			@Override
+			public void partBroughtToTop(IWorkbenchPart part) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void partActivated(IWorkbenchPart part) {
+
+				if(part instanceof IEditorPart) {
+					ITextEditor editor= (ITextEditor)part;
+					IEditorInput input=editor.getEditorInput();
+		            IFile editorFile = (IFile) input.getAdapter(IFile.class);
+		            IProject project=ResourcesPlugin.getWorkspace().getRoot().getProject("sourcesearch");
+		            if(project.exists() && project.equals(editorFile.getProject())){		        		
+		        		ITextViewer viewer = (ITextViewer) editor.getAdapter(ITextOperationTarget.class);
+		        		if (viewer != null) {
+		        			viewer.setEditable(false);
+		        			viewer.getTextWidget().setBackground(new Color(Display.getCurrent(), 211, 211, 211));
+		        		}
+		            }
+
+				}				
+							
+			}
+		};
+		return partListner;
 	}
 	private void openResultContentInEditor(SearchContentProviderTest contentProviderTest) throws CoreException {
 		IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();

@@ -2,22 +2,22 @@ package sionea.sourcesearch.editor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 
 /**
  * This service performs various actions on editors.
@@ -25,6 +25,18 @@ import org.eclipse.ui.ide.IDE;
  * @author Anoop
  */
 public class EditorService {
+	private static EditorService editorService;
+	private static  final Collection<IFile> editorFiles = new HashSet<IFile>();
+
+	 private EditorService() {
+		 
+	 }
+	public static EditorService getDefualt() {
+		if(editorService == null) {
+			editorService = new EditorService();
+		}
+		return editorService;
+	}
 
     /**
      * Returns all open editor.
@@ -48,12 +60,16 @@ public class EditorService {
      * @param id - id of the opened editors.
      * @return collection of editors.
      */
-    public Collection<IEditorPart> getOpenedEditors(final String id) {
+    public Collection<IEditorPart> getOpenedReadOnlyEditors(final String id) {
         Collection<IEditorPart> editors = new HashSet<IEditorPart>();
 
         for (IEditorReference reference : this.getOpenEditorReferences()) {
             if (reference.getId().equals(id)) {
-                editors.add(reference.getEditor(true));
+            	IEditorPart part= reference.getEditor(true);
+            	ITextViewer viewer = (ITextViewer) part.getAdapter(ITextOperationTarget.class);
+        		if (viewer != null && !viewer.isEditable()) {
+        			editors.add(part);
+        		}
             }
         }
 
@@ -150,9 +166,24 @@ public class EditorService {
      */
     public void closeEditors(final Collection<IEditorPart> editors) {
         for (IEditorPart editor : editors) {
+            IFile file = (IFile) editor.getEditorInput().getAdapter(IFile.class);
+            editorFiles.add(file);
             this.closeEditor(editor);
         }
     }
+	public void removeFiles(Collection<IFile> files) {
+		for (IFile editorFile : files) {
+        	 IProject project=ResourcesPlugin.getWorkspace().getRoot().getProject("sourcesearch");
+	            if(project.exists() && project.equals(editorFile.getProject())){
+	            	try {
+						editorFile.delete(true, new NullProgressMonitor());
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	            }
+		}
+	}
 
     /**
      * Closes the editor, no save confirmation dialog will appear.
@@ -164,44 +195,7 @@ public class EditorService {
         page.closeEditor(editor, false);
     }
 
-    public void reopenEditors(Collection<IEditorPart> editors) throws PartInitException {
-        Set<IEditorPart> activeEditors = new HashSet<IEditorPart>();
-        Map<IEditorPart, IWorkbenchPage> pages = new HashMap<IEditorPart, IWorkbenchPage>();  
-        Map<IEditorPart, String> ids = new HashMap<IEditorPart, String>();  
-        Map<IEditorPart, IFile> files = new HashMap<IEditorPart, IFile>();  
-        
-        for (IEditorPart editor : editors) {
-            IWorkbenchPage page = editor.getEditorSite().getPage();
-            String id = editor.getSite().getId();
-            IFile file = (IFile) editor.getEditorInput().getAdapter(IFile.class);
-
-            pages.put(editor, page);
-            ids.put(editor, id);
-            files.put(editor, file);
-            
-            IEditorPart activeEditor = page.getActiveEditor();
-            activeEditors.add(activeEditor);
-            
-            this.closeEditor(editor);
-        }
-        
-        for (IEditorPart editor : editors) {
-            IWorkbenchPage page = pages.get(editor);
-            String id = ids.get(editor);
-            IFile file = files.get(editor);
-            
-            IEditorPart reopnedEditor = IDE.openEditor(page, file, id, false);
-            if (activeEditors.contains(editor)) {
-                activeEditors.remove(editor);
-                activeEditors.add(reopnedEditor);
-            }
-        }
-        
-        for (IEditorPart editor : activeEditors) {
-            IWorkbenchPage page = editor.getEditorSite().getPage();
-            page.activate(editor);
-        }
-    }
+     
     
     /**
      * Closes all orphan editors.
@@ -254,4 +248,7 @@ public class EditorService {
         }
         return references;
     }
+	public static Collection<IFile> getEditorFiles() {
+		return editorFiles;
+	}
 }

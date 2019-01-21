@@ -10,6 +10,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 
+import sionea.sourcesearch.editor.EditorService;
+
 /**
  * Activator class
  *
@@ -38,8 +40,7 @@ public class SourceSearchPlugin extends AbstractUIPlugin {
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		// TODO Auto-generated method stub
-		
+		EditorService.getDefualt().removeFiles(EditorService.getEditorFiles());
 	}
 	
 	@Override

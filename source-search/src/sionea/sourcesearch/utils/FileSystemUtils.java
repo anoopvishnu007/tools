@@ -58,6 +58,7 @@ public class FileSystemUtils {
 		IDE.openEditor( page, fileToOpen,editorId);
 		// make editor window non-editable
 		ITextEditor editor = (ITextEditor) page.getActiveEditor();
+		
 		ITextViewer viewer = (ITextViewer) editor.getAdapter(ITextOperationTarget.class);
 		if (viewer != null) {
 			viewer.setEditable(false);
