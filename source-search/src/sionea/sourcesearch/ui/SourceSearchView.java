@@ -238,7 +238,8 @@ public class SourceSearchView extends ViewPart {
 		Table searchResultTable = viewer.getTable();
 		searchResultTable.setLinesVisible(true);
 		searchResultTable.setHeaderVisible(true);
-		searchResultTable.setHeaderBackground(searchResultTable.getDisplay().getSystemColor(SWT.COLOR_GRAY));
+		//Code for setting the table viewer header background color. Support onwards Eclipse 4.7 oxygen version
+		//searchResultTable.setHeaderBackground(searchResultTable.getDisplay().getSystemColor(SWT.COLOR_GRAY));
 
 		final TableColumn sourceNameTC = new TableColumn(searchResultTable, SWT.LEFT);
 		sourceNameTC.setText("Source Name");
