@@ -32,6 +32,9 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchListener;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -293,6 +296,23 @@ public class SourceSearchView extends ViewPart {
 		getSite().setSelectionProvider(viewer);
 		 
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(getPartListner());
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		 
+		workbench.addWorkbenchListener( new IWorkbenchListener()
+		{
+		    public boolean preShutdown( IWorkbench workbench, boolean forced )
+		    {                            
+		    	Collection<IEditorPart> parts=EditorService.getDefualt().getOpenedReadOnlyEditors("org.eclipse.datatools.sqltools.sqleditor.SQLEditor");
+            	EditorService.getDefualt().closeEditors(parts);
+		        return true;
+		    }
+		 
+		    public void postShutdown( IWorkbench workbench )
+		    {
+		 
+		    }
+		});
+
 
 	}
 	private IPartListener getPartListner() {
@@ -319,13 +339,13 @@ public class SourceSearchView extends ViewPart {
 			@Override
 			public void partDeactivated(IWorkbenchPart part) {
 				// TODO Auto-generated method stub
-				
+				 
 			}
 			
 			@Override
 			public void partClosed(IWorkbenchPart part) {
-				Collection<IEditorPart> parts=EditorService.getDefualt().getOpenedReadOnlyEditors("org.eclipse.datatools.sqltools.sqleditor.SQLEditor");
-				EditorService.getDefualt().closeEditors(parts);
+				/*Collection<IEditorPart> parts=EditorService.getDefualt().getOpenedReadOnlyEditors("org.eclipse.datatools.sqltools.sqleditor.SQLEditor");
+            	EditorService.getDefualt().closeEditors(parts);*/
 			}
 			
 			@Override
@@ -342,11 +362,12 @@ public class SourceSearchView extends ViewPart {
 					IEditorInput input=editor.getEditorInput();
 		            IFile editorFile = (IFile) input.getAdapter(IFile.class);
 		            IProject project=ResourcesPlugin.getWorkspace().getRoot().getProject("sourcesearch");
-		            if(project.exists() && project.equals(editorFile.getProject())){		        		
+		            if(project.exists() && editorFile!=null &&  project.equals(editorFile.getProject())){		        		
 		        		ITextViewer viewer = (ITextViewer) editor.getAdapter(ITextOperationTarget.class);
 		        		if (viewer != null) {
 		        			viewer.setEditable(false);
 		        			viewer.getTextWidget().setBackground(new Color(Display.getCurrent(), 211, 211, 211));
+		        			
 		        		}
 		            }
 
