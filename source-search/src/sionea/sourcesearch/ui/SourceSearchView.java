@@ -364,7 +364,7 @@ public class SourceSearchView extends ViewPart {
 			final SearchResult result = (SearchResult) obj; 
 			String fileContent=contentProviderTest.getText(result);
 			IFile fileToOpen = FileSystemUtils.createFileWithContent("sourcesearch","externalfile.sql",fileContent);
-			FileSystemUtils.openFileInEditor(fileToOpen,"org.eclipse.datatools.sqltools.sqleditor.SQLEditor");		
+			FileSystemUtils.openFileInEditor(fileToOpen,currentSearchData.getSearchString(),"org.eclipse.datatools.sqltools.sqleditor.SQLEditor");		
 		}
 	}
 	
