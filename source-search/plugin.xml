@@ -35,5 +35,33 @@
       </command>
       
      </extension>
+   <extension
+         id="sourcesearch.marker"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.textmarker">
+      </super>
+      <attribute
+            name="line">
+      </attribute>
+      <attribute
+            name="potentialMatch">
+      </attribute>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerImageProviders">
+      <imageprovider
+            icon="icons/line_match.gif"
+            id="source-search.imageprovider"
+            markertype="sourcesearch.marker">
+      </imageprovider>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors.annotationTypes">
+      <type
+            markerType="sourcesearch.marker"
+            name="source-search.type">
+      </type>
+   </extension>
 
 </plugin>
