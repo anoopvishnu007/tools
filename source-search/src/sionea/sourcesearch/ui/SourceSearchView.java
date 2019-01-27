@@ -129,6 +129,7 @@ public class SourceSearchView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				searchText.setText("");
 				searchText.setFocus();
+				viewer.getTable().clearAll();;
 				FileSystemUtils.clearMarkers();
 			}
 		});

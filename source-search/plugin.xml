@@ -27,15 +27,6 @@
       </handler>
    </extension>
    <extension
-         point="org.eclipse.ui.commands">
-      <command
-            defaultHandler="sionea.sourcesearch.handler.OpenEditorHandler"
-            id="sionea.sourcesearch.Editor.UserCommand"
-            name="Call UserEditor">
-      </command>
-      
-     </extension>
-   <extension
          id="sourcesearch.marker"
          point="org.eclipse.core.resources.markers">
       <super
@@ -48,7 +39,7 @@
    <extension
          point="org.eclipse.ui.ide.markerImageProviders">
       <imageprovider
-            class="sionea.sourcesearch.ui.ImageProvider"
+            icon="icons/line_match.gif"
             id="source-search.imageprovider"
             markertype="sourcesearch.marker">
       </imageprovider>
