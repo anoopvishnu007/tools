@@ -4,11 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.ITextOperationTarget;
-import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -17,29 +13,24 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchListener;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 import sionea.sourcesearch.SourceSearchPlugin;
 import sionea.sourcesearch.data.SearchData;
@@ -48,6 +39,8 @@ import sionea.sourcesearch.editor.EditorService;
 import sionea.sourcesearch.utils.FileSystemUtils;
 
 public class SourceSearchView extends ViewPart {
+	public static final String SQL_EDITOR_ID = "org.eclipse.datatools.sqltools.sqleditor.SQLEditor";
+
 	public static final String ID = "source-search.view"; 
 
 	private TableViewer viewer;
@@ -136,6 +129,7 @@ public class SourceSearchView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				searchText.setText("");
 				searchText.setFocus();
+				FileSystemUtils.clearMarkers();
 			}
 		});
 		textComposite.setTabList(new Control[] { searchText,sourceNameFilter,filterBar });
@@ -302,7 +296,7 @@ public class SourceSearchView extends ViewPart {
 		{
 		    public boolean preShutdown( IWorkbench workbench, boolean forced )
 		    {                            
-		    	Collection<IEditorPart> parts=EditorService.getDefualt().getOpenedReadOnlyEditors("org.eclipse.datatools.sqltools.sqleditor.SQLEditor");
+		    	Collection<IEditorPart> parts=EditorService.getDefualt().getOpenedReadOnlyEditors(SQL_EDITOR_ID);
             	EditorService.getDefualt().closeEditors(parts);
 		        return true;
 		    }
@@ -320,20 +314,7 @@ public class SourceSearchView extends ViewPart {
 			
 			@Override
 			public void partOpened(IWorkbenchPart part) {
-				if(part instanceof IEditorPart) {
-					ITextEditor editor= (ITextEditor)part;
-					IEditorInput input=editor.getEditorInput();
-		            IFile editorFile = (IFile) input.getAdapter(IFile.class);
-		            IProject project=ResourcesPlugin.getWorkspace().getRoot().getProject("sourcesearch");
-		            if(project.exists() && project.equals(editorFile.getProject())){		        		
-		        		ITextViewer viewer = (ITextViewer) editor.getAdapter(ITextOperationTarget.class);
-		        		if (viewer != null) {
-		        			viewer.setEditable(false);
-		        			viewer.getTextWidget().setBackground(new Color(Display.getCurrent(), 211, 211, 211));
-		        		}
-		            }
-
-				}				
+				
 			}
 			
 			@Override
@@ -344,8 +325,8 @@ public class SourceSearchView extends ViewPart {
 			
 			@Override
 			public void partClosed(IWorkbenchPart part) {
-				/*Collection<IEditorPart> parts=EditorService.getDefualt().getOpenedReadOnlyEditors("org.eclipse.datatools.sqltools.sqleditor.SQLEditor");
-            	EditorService.getDefualt().closeEditors(parts);*/
+				Collection<IEditorPart> parts=EditorService.getDefualt().getOpenedReadOnlyEditors(SQL_EDITOR_ID);
+            	EditorService.getDefualt().closeEditors(parts);
 			}
 			
 			@Override
@@ -358,19 +339,7 @@ public class SourceSearchView extends ViewPart {
 			public void partActivated(IWorkbenchPart part) {
 
 				if(part instanceof IEditorPart) {
-					ITextEditor editor= (ITextEditor)part;
-					IEditorInput input=editor.getEditorInput();
-		            IFile editorFile = (IFile) input.getAdapter(IFile.class);
-		            IProject project=ResourcesPlugin.getWorkspace().getRoot().getProject("sourcesearch");
-		            if(project.exists() && editorFile!=null &&  project.equals(editorFile.getProject())){		        		
-		        		ITextViewer viewer = (ITextViewer) editor.getAdapter(ITextOperationTarget.class);
-		        		if (viewer != null) {
-		        			viewer.setEditable(false);
-		        			viewer.getTextWidget().setBackground(new Color(Display.getCurrent(), 211, 211, 211));
-		        			
-		        		}
-		            }
-
+					
 				}				
 							
 			}
@@ -384,8 +353,8 @@ public class SourceSearchView extends ViewPart {
 		if(obj instanceof SearchResult) {
 			final SearchResult result = (SearchResult) obj; 
 			String fileContent=contentProviderTest.getText(result);
-			IFile fileToOpen = FileSystemUtils.createFileWithContent("sourcesearch","externalfile.sql",fileContent);
-			FileSystemUtils.openFileInEditor(fileToOpen,currentSearchData.getSearchString(),"org.eclipse.datatools.sqltools.sqleditor.SQLEditor");		
+			IFile fileToOpen = FileSystemUtils.createFileWithContent(FileSystemUtils.DEFAULT_PROJECT_NAME,FileSystemUtils.DEFAULT_FILE_NAME,fileContent);
+			FileSystemUtils.openFileInEditor(fileToOpen,currentSearchData.getSearchString(),SQL_EDITOR_ID);		
 		}
 	}
 	

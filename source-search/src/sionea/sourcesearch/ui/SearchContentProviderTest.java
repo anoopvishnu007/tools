@@ -50,7 +50,7 @@ public class SearchContentProviderTest extends SearchContentProvider {
 	public SearchContentProviderTest() {
 		this.list = new SearchResult[0];
 		this.allSources = new TestSourceRec[]{
-				new TestSourceRec(1, "amazon_aws_s3_pkg", "PACKAGE BODY", "create or replace package body amazon_aws_s3_pkg\r\n" + 
+				new TestSourceRec(1, "amazon_aws_s3_pkg", "PACKAGE BODY", "create or replace package     body amazon_aws_s3_pkg\r\n" + 
 						"as\r\n" + 
 						"\r\n" + 
 						"  /*\r\n" + 
@@ -1452,7 +1452,7 @@ public class SearchContentProviderTest extends SearchContentProvider {
 			   		"end amazon_aws_auth_pkg;\r\n" + 
 			   		"/\r\n" + 
 			   		"")
-			   ,new TestSourceRec(4, "amazon_aws_auth_pkg", "PACKAGE BODY", "create or replace package body amazon_aws_auth_pkg\r\n" + 
+			   ,new TestSourceRec(4, "amazon_aws_auth_pkg", "PACKAGE BODY", "create or replace package      \r\nbody\r\n amazon_aws_auth_pkg\r\n" + 
 			   		"as\r\n" + 
 			   		"\r\n" + 
 			   		"  /*\r\n" + 
@@ -3264,6 +3264,16 @@ public class SearchContentProviderTest extends SearchContentProvider {
 				};
 				break;
 			case "package body":
+				this.list = new SearchResult[]{
+						 new SearchResult(allSources[1].getSourceId(), allSources[1].getSourceName(), allSources[1].getSourceType(), 1, 0)
+						,new SearchResult(allSources[3].getSourceId(), allSources[3].getSourceName(), allSources[3].getSourceType(), 1, 0)
+						,new SearchResult(allSources[5].getSourceId(), allSources[5].getSourceName(), allSources[5].getSourceType(), 2, 0)
+						,new SearchResult(allSources[7].getSourceId(), allSources[7].getSourceName(), allSources[7].getSourceType(), 2, 1)
+						,new SearchResult(allSources[9].getSourceId(), allSources[9].getSourceName(), allSources[9].getSourceType(), 2, 1)
+						,new SearchResult(allSources[11].getSourceId(), allSources[11].getSourceName(), allSources[11].getSourceType(), 1, 1)
+				};
+				break;
+			case "get_page_help_text (p_application_id in number, p_page_id in number)":
 				this.list = new SearchResult[]{
 						 new SearchResult(allSources[1].getSourceId(), allSources[1].getSourceName(), allSources[1].getSourceType(), 1, 0)
 						,new SearchResult(allSources[3].getSourceId(), allSources[3].getSourceName(), allSources[3].getSourceType(), 1, 0)

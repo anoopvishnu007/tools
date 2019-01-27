@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,9 +23,15 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourceAttributes;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.datatools.sqltools.sqleditor.SQLEditor.AdaptedSourceViewer;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextOperationTarget;
@@ -34,8 +41,6 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelExtension;
-import org.eclipse.search.internal.ui.SearchPlugin;
-import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -47,11 +52,18 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import sionea.sourcesearch.editor.EditorService;
+import sionea.sourcesearch.ui.SourceSearchView;
+
 /**
  * @author Anoop
  *
  */
 public class FileSystemUtils {
+	private static final String SEARCH_ANNOTATION_TYPE = "source-search.type";
+	private static final String SEARCH_MARKER = "sourcesearch.marker";
+	public final static String DEFAULT_PROJECT_NAME = "sourcesearch";
+	public static final String DEFAULT_FILE_NAME = "externalfile.sql";
 	private static Map<IRegion, Annotation> regionAnnotations=new HashMap<IRegion, Annotation>();
 	
 	
@@ -80,14 +92,21 @@ public class FileSystemUtils {
 		Set<IRegion> regions=new HashSet<>();
 		regions.addAll(regionAnnotations.keySet());
     	removeHighlights( regions,model);
+    	fileToOpen.deleteMarkers(SEARCH_MARKER, true, IResource.DEPTH_INFINITE);
+		ResourcesPlugin.getWorkspace().getRoot().getProject(defaultProjectName).refreshLocal(IResource.DEPTH_INFINITE,new NullProgressMonitor() );
+
 		fileToOpen.setContents(new ByteArrayInputStream(fileContent.getBytes()), IFile.BACKGROUND_REFRESH|IFile.FORCE, new NullProgressMonitor());
 		return fileToOpen;
 	}
 	public static void openFileInEditor(IFile fileToOpen, String searchText, String editorId) throws PartInitException {
 		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		IEditorPart editor = (ITextEditor) page.getActiveEditor();
-		IAnnotationModel model = getAnnotationModel(editor);
-    	//removeHighlights( regionAnnotations.keySet(),model);
+		if(editor != null && editor.getEditorInput()!= null) {
+			IFile file = (IFile) editor.getEditorInput().getAdapter(IFile.class);
+			EditorService.getEditorFiles().add(file);
+			page.closeEditor(editor, false);
+		}
+
 		IEditorPart editorPart=IDE.openEditor( page, fileToOpen,editorId);
 		// make editor window non-editable
 		 editor = (ITextEditor) page.getActiveEditor();
@@ -96,27 +115,52 @@ public class FileSystemUtils {
 		if (viewer != null) {			
 			List<IRegion> regions =findSearchStringRegions(viewer.getDocument(), searchText);
 			highlightSearchTextRegions(editorPart,regions);
-			viewer.setEditable(false);
-			viewer.getTextWidget().setBackground(new Color(Display.getCurrent(), 211, 211, 211));
+			
+
 		}
 		
 	}
 	private static void highlightSearchTextRegions(IEditorPart editorPart, List<IRegion> regions) {
 		Map<IAnnotationModel, HashMap<Annotation, Position>> mapsByAnnotationModel= new HashMap<>();
 
-		for (IRegion iRegion : regions) {
+		
+			 
 			final IFileEditorInput input = (IFileEditorInput)editorPart.getEditorInput();
+			IAnnotationModel model = getAnnotationModel(editorPart);
                  //creates a marker in the file and goes to the marker
-                try {
-                	IAnnotationModel model = getAnnotationModel(editorPart);
-                 	addHighlights(iRegion, mapsByAnnotationModel, model);
-                	createMarker(input.getFile(), iRegion);
+                try {              	
+                 	
+                 	input.getFile().getWorkspace().run(new IWorkspaceRunnable() {
+    					@Override
+    					public void run(IProgressMonitor monitor) throws CoreException {
+    						for (IRegion iRegion : regions) {
+    							addHighlights(iRegion, mapsByAnnotationModel, model);
+    							createMarker(input.getFile(), iRegion);
+    							
+    						}
+    						
+
+    					}
+    				}, input.getFile(), IWorkspace.AVOID_UPDATE, null);
 
 				} catch (CoreException e) {
 					e.printStackTrace();
+				}finally {
+					ITextViewer viewer = (ITextViewer) editorPart.getAdapter(ITextOperationTarget.class);
+					viewer.getTextWidget().setBackground(new Color(Display.getCurrent(), 211, 211, 211));
+					viewer.setEditable(false);
+					ResourceAttributes attributes= new ResourceAttributes();
+					//attributes.setReadOnly(true);
+					try {
+						input.getFile().setResourceAttributes(attributes);
+						viewer.getTextWidget().setEditable(false);
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
                
-		}
+		
 		
 	}
 	private static IAnnotationModel getAnnotationModel(IEditorPart editorPart) {
@@ -146,7 +190,7 @@ public class FileSystemUtils {
 				if (position != null) {
 					Map<Annotation, Position> map= getMap(mapsByAnnotationModel, model);
 					if (map != null) {
-						Annotation annotation= new Annotation(SearchPlugin.SEARCH_ANNOTATION_TYPE, true, null);
+						Annotation annotation= new Annotation(SEARCH_ANNOTATION_TYPE, false, null);
 						regionAnnotations.put(match, annotation);
 						map.put(annotation, position);
 					}
@@ -227,11 +271,11 @@ public class FileSystemUtils {
 			return null;
 		}
 		Position position= new Position(match.getOffset(), match.getLength());
-		IMarker marker= file.createMarker(NewSearchUI.SEARCH_MARKER);
-		HashMap<String, Integer> attributes= new HashMap<>(4);
-		attributes.put(IMarker.CHAR_START, Integer.valueOf(position.getOffset()));
+		IMarker marker= file.createMarker(SEARCH_MARKER);
+		HashMap<String, Integer> attributes= new HashMap<>();
+ 		attributes.put(IMarker.CHAR_START, Integer.valueOf(position.getOffset()));
 		attributes.put(IMarker.CHAR_END, Integer.valueOf(position.getOffset()+position.getLength()));
-		attributes.put(IMarker.LINE_NUMBER, Integer.valueOf(position.getOffset()));
+		//attributes.put(IMarker.LINE_NUMBER, Integer.valueOf(position.getOffset()));
 		marker.setAttributes(attributes);
 		return marker;
 	}
@@ -250,6 +294,12 @@ public class FileSystemUtils {
 			}
 			if (end != start) { // don't report 0-length matches
 				final int length = end - start;
+				try {
+					System.out.println(document.get(start, length));
+				} catch (BadLocationException e) {
+ 					e.printStackTrace();
+				}
+				
 				regionlist.add(new Region(start,length));
 
 			}
@@ -269,7 +319,12 @@ public class FileSystemUtils {
 	 */
 	public static Matcher getSearchStringMatcher(final IDocument document,
 			final String fileSearchText) {
-		Pattern pattern = createPattern(fileSearchText,false);
+        final StringBuffer buffer = new StringBuffer( );
+		PatternHelper.appendAsRegEx(fileSearchText, buffer);
+		String searchText=buffer.toString().replaceAll("(\\s+)", "(\\\\s*\\\\n*)");
+		searchText=searchText.replaceAll("\\n+", "\\\\n*");
+		searchText=searchText+"\\n*";
+		Pattern pattern = createPattern(searchText,false);
 
 		return pattern.matcher(document.get());
 	}
@@ -287,7 +342,32 @@ public class FileSystemUtils {
         if( !isCaseSensitive ) {
             regexOptions |= Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
         }
-        return Pattern.compile( patternText, regexOptions );
+       
+        return Pattern.compile(patternText, regexOptions );
     }
+	public static void clearMarkers() {
+		Collection<IEditorPart> parts = EditorService.getDefualt().getOpenedReadOnlyEditors(SourceSearchView.SQL_EDITOR_ID);
+		for (IEditorPart editor : parts) {
+            IFile file = (IFile) editor.getEditorInput().getAdapter(IFile.class);
+            try {
+            	ITextViewer viewer = (ITextViewer) editor.getAdapter(ITextOperationTarget.class);
+        		if (viewer != null) {	
+        			viewer.getTextWidget().setEditable(true);
+        			viewer.setEditable(true);
+        			file.deleteMarkers(SEARCH_MARKER, true, IResource.DEPTH_INFINITE);
+        			file.refreshLocal(IResource.DEPTH_INFINITE,new NullProgressMonitor() );
+        			viewer.getTextWidget().setEditable(false);
+        			viewer.setEditable(false);
+        			viewer.resetVisibleRegion();    
+        			AdaptedSourceViewer ruler = (AdaptedSourceViewer) editor.getAdapter(ITextOperationTarget.class);
+                	ruler.refresh();
+        		}				
+			} catch (CoreException e) {
+ 				e.printStackTrace();
+			}
+
+
+		}
+	}
 
 }

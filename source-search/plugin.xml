@@ -44,14 +44,11 @@
       <attribute
             name="line">
       </attribute>
-      <attribute
-            name="potentialMatch">
-      </attribute>
    </extension>
    <extension
          point="org.eclipse.ui.ide.markerImageProviders">
       <imageprovider
-            icon="icons/line_match.gif"
+            class="sionea.sourcesearch.ui.ImageProvider"
             id="source-search.imageprovider"
             markertype="sourcesearch.marker">
       </imageprovider>
@@ -62,6 +59,34 @@
             markerType="sourcesearch.marker"
             name="source-search.type">
       </type>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="source-search.type"
+            colorPreferenceKey="sourceSearchResultIndicationColor"
+            colorPreferenceValue="206,204,247"
+            highlightPreferenceKey="sourceSearchResultHighlighting"
+            highlightPreferenceValue="true"
+            icon="icons/line_match.gif"
+            includeOnPreferencePage="true"
+            isGoToNextNavigationTarget="false"
+            isGoToNextNavigationTargetKey="isSourceSearchResultGoToNextNavigationTarget"
+            isGoToPreviousNavigationTarget="false"
+            isGoToPreviousNavigationTargetKey="isSourceSearchResultGoToPreviousNavigationTarget"
+            label="Source search result"
+            overviewRulerPreferenceKey="sourceSearchResultIndicationInOverviewRuler"
+            overviewRulerPreferenceValue="true"
+            presentationLayer="3"
+            showInNextPrevDropdownToolbarAction="true"
+            showInNextPrevDropdownToolbarActionKey="showSourceSearchResultInNextPrevDropdownToolbarAction"
+            textPreferenceKey="sourceSearchResultIndication"
+            textPreferenceValue="false"
+            textStylePreferenceKey="sourceSearchResultTextStyle"
+            textStylePreferenceValue="NONE"
+            verticalRulerPreferenceKey="sourceSearchResultIndicationInVerticalRuler"
+            verticalRulerPreferenceValue="true">
+      </specification>
    </extension>
 
 </plugin>
